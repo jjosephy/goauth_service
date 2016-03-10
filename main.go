@@ -2,50 +2,26 @@ package main
 
 import (
     "fmt"
-    "github.com/dgrijalva/jwt-go"
-    "io/ioutil"
-    "log"
-    "time"
+    //"github.com/dgrijalva/jwt-go"
+    "github.com/jjosephy/goauth_service/handler"
+    //"io/ioutil"
+    //"log"
+    //"time"
+    "net/http"
 )
 
-var (
-    jwtTestDefaultKey []byte
-    defaultKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestDefaultKey, nil }
+const (
+    PORT       = ":8443"
+    PRIV_KEY   = "./private_key"
+    PUBLIC_KEY = "./cert.pem"
 )
 
+// Main entry point used to set up routes //
 func main() {
-    fmt.Println("here")
-    var e error
-
-
-    if jwtTestDefaultKey, e = ioutil.ReadFile("cert.pem"); e != nil {
-        panic(e)
-    }
-
-    // Create the token
-	tokens := jwt.New(jwt.SigningMethodHS256)
-	// Set some claims
-	tokens.Claims["foo"] = "bar"
-	tokens.Claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-	// Sign and get the complete encoded token as a string
-	tokenString, ex := tokens.SignedString(jwtTestDefaultKey)
-
-    if ex != nil {
-        log.Printf("Error %v", ex)
-        return
-    }
-
-    log.Println(tokenString)
-    log.Println("")
-
-    token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-        return defaultKeyFunc(tokens)
-    })
-
-    fmt.Println()
-    if err == nil && token.Valid {
-        fmt.Println(token.Claims["foo"])
-    } else {
-        fmt.Println("err")
+    mux := http.NewServeMux()
+    mux.HandleFunc("/token", handler.TokenHandler())
+    err := http.ListenAndServeTLS(PORT, PUBLIC_KEY, PRIV_KEY, mux)
+    if err != nil {
+       fmt.Printf("main(): %s\n", err)
     }
 }
