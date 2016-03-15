@@ -14,7 +14,7 @@ func TokenHandler() http.HandlerFunc {
                 c, e := context.NewRequesetContext(r)
 
                 if e != nil {
-                    w.Write([]byte("errr"))
+                    w.Write([]byte(e.Error()))
                     return
                 }
 
